@@ -7,7 +7,7 @@ import (
 func InitRouter() *gin.Engine {
 	router := gin.Default()
 
-	u := &UserHandler{}
+	u := NewUserHandler()
 	u.RegisterRoutes(router)
 
 	return router
