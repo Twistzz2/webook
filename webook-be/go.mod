@@ -1,4 +1,4 @@
-module github.com/Twistzz2/webook
+module github.com/Twistzz2/webook/webook-be
 
 go 1.24.1
 
