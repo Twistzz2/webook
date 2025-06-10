@@ -1,4 +1,4 @@
-package web
+package handler
 
 import (
 	"fmt"
@@ -8,7 +8,6 @@ import (
 	"github.com/Twistzz2/webook/webook-be/internal/repository"
 	"github.com/Twistzz2/webook/webook-be/internal/repository/dao"
 	"github.com/Twistzz2/webook/webook-be/internal/repository/service"
-	"github.com/Twistzz2/webook/webook-be/internal/web"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"gorm.io/driver/mysql"
@@ -27,7 +26,7 @@ func InitRouter() *gin.Engine {
 	ud := dao.NewUserDAO(db)
 	repo := repository.NewUserRepository(ud)
 	svc := service.NewUserService(repo)
-	u := web.NewUserHandler(svc)
+	u := NewUserHandler(svc)
 
 	router := gin.Default()
 
