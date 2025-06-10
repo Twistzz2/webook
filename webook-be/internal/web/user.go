@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net/http"
 
+	"github.com/Twistzz2/webook/webook-be/internal/domain"
+	"github.com/Twistzz2/webook/webook-be/internal/repository/service"
 	regexp "github.com/dlclark/regexp2"
 
 	"github.com/gin-gonic/gin"
@@ -11,11 +13,12 @@ import (
 
 // UserHandler 在这里定义和用户有关的路由
 type UserHandler struct {
+	svc              *service.UserService
 	emailRegexExp    *regexp.Regexp
 	passwordRegexExp *regexp.Regexp
 }
 
-func NewUserHandler() *UserHandler {
+func NewUserHandler(svc *service.UserService) *UserHandler {
 	const (
 		emailRegexPattern    = `^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}$`
 		passwordRegexPattern = `^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$`
@@ -24,6 +27,7 @@ func NewUserHandler() *UserHandler {
 	passwordExp := regexp.MustCompile(passwordRegexPattern, regexp.None)
 
 	return &UserHandler{
+		svc:              svc,
 		emailRegexExp:    emailExp,
 		passwordRegexExp: passwordExp,
 	}
@@ -83,6 +87,17 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 		c.String(http.StatusBadRequest, "密码格式不正确") // 400
 		return
 	}
+
+	// 调用 svc 的方法
+	err = u.svc.SignUp(c, domain.User{
+		Email:    req.Email,
+		Password: req.Password,
+	})
+	if err != nil {
+		c.String(http.StatusInternalServerError, "系统错误") // 500
+		return
+	}
+
 	c.String(http.StatusOK, "注册成功")
 	fmt.Printf("%+v\n", req)
 
