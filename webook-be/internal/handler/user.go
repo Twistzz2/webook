@@ -7,6 +7,7 @@ import (
 	"github.com/Twistzz2/webook/webook-be/internal/domain"
 	"github.com/Twistzz2/webook/webook-be/internal/repository/service"
 	regexp "github.com/dlclark/regexp2"
+	"github.com/gin-contrib/sessions"
 
 	"github.com/gin-gonic/gin"
 )
@@ -43,7 +44,6 @@ func (u *UserHandler) RegisterRoutes(router *gin.Engine) {
 
 func (u *UserHandler) SignUp(c *gin.Context) {
 	// TODO: 处理用户注册逻辑
-	c.String(http.StatusOK, "你好，这里是注册接口")
 
 	// 定义方法内部类 SignUpReq 来接收数据
 	// 除了 SignUp 方法外，其他方法都用不了
@@ -93,6 +93,12 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 		Email:    req.Email,
 		Password: req.Password,
 	})
+	// 最佳实践
+	// errors.Is(err, service.ErrEmailAlreadyExists) // 判断错误类型
+	if err == service.ErrEmailAlreadyExists {
+		c.String(http.StatusBadRequest, "邮箱已被注册") // 400
+		return
+	}
 	if err != nil {
 		c.String(http.StatusInternalServerError, "系统错误") // 500
 		return
@@ -105,6 +111,33 @@ func (u *UserHandler) SignUp(c *gin.Context) {
 
 func (u *UserHandler) SignIn(c *gin.Context) {
 	// TODO: 处理用户登录逻辑
+	type SignInReq struct {
+		Email    string `json:"email"`
+		Password string `json:"password"`
+	}
+	var req SignInReq
+	if err := c.Bind(&req); err != nil {
+		c.String(http.StatusBadRequest, "请求数据格式错误") // 400
+		return
+	}
+	user, err := u.svc.SignIn(c, req.Email, req.Password)
+	if err == service.ErrInvalidUserOrPassword {
+		c.String(http.StatusUnauthorized, "账号或密码无效") // 401
+		return
+	}
+	if err != nil {
+		c.String(http.StatusInternalServerError, "系统错误") // 500
+		return
+	}
+
+	// 这里登录成功后，需要将 session 拿到
+	sess := sessions.Default(c)
+	sess.Set("user_id", user.Id) // 假设用 email 作为用户唯一标识
+	sess.Save()
+
+	c.String(http.StatusOK, "登录成功") // 200
+	return
+
 }
 
 func (u *UserHandler) Edit(c *gin.Context) {
@@ -113,4 +146,5 @@ func (u *UserHandler) Edit(c *gin.Context) {
 
 func (u *UserHandler) Profile(c *gin.Context) {
 	// TODO: 处理用户个人信息查看逻辑
+	c.String(http.StatusOK, "这是你的 profile") // 200
 }
