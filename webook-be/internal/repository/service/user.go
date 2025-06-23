@@ -33,7 +33,7 @@ func (svc *UserService) SignUp(ctx context.Context, u domain.User) error {
 	return svc.repo.Create(ctx, u)
 }
 
-func (svc *UserService) SignIn(ctx context.Context, email, password string) (domain.User, error) {
+func (svc *UserService) Login(ctx context.Context, email, password string) (domain.User, error) {
 	// 先从 repo 找用户
 	user, err := svc.repo.FindByEmail(ctx, email)
 	if err == repository.ErrUserNotFound {
@@ -49,4 +49,9 @@ func (svc *UserService) SignIn(ctx context.Context, email, password string) (dom
 		return domain.User{}, ErrInvalidUserOrPassword
 	}
 	return user, nil
+}
+
+func (svc *UserService) Profile(ctx context.Context,
+	id int64) (domain.User, error) {
+	return svc.repo.FindById(ctx, id)
 }
