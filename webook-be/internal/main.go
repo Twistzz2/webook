@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/gob"
 	"fmt"
 	"strings"
 	"time"
@@ -19,6 +20,9 @@ import (
 )
 
 func main() {
+	// 注册 time.Time 类型到 gob，这样可以在 session 中直接存储 time.Time
+	gob.Register(time.Time{})
+
 	db := InitDB()
 	u := InitUser(db)
 

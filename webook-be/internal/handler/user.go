@@ -145,8 +145,8 @@ func (u *UserHandler) Login(c *gin.Context) {
 		// Secure: true,      // 生产环境中设置
 	}) // 使用userId作为会话键
 	session.Set("userId", user.Id)
-	// 设置更新时间，配合中间件使用 - 存储为Unix时间戳避免gob序列化问题
-	session.Set("updateTime", time.Now().Unix())
+	// 设置更新时间，配合中间件使用 - 现在可以直接存储 time.Time
+	session.Set("updateTime", time.Now())
 	// 保存会话，使用新变量避免冲突
 	if saveErr := session.Save(); saveErr != nil {
 		fmt.Printf("保存会话错误: %v\n", saveErr)

@@ -17,6 +17,7 @@ func NewLoginMiddlewareBuilder() *LoginMiddlewareBuilder {
 }
 
 func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
+
 	// 定义不需要登录验证的路径
 	publicPaths := map[string]bool{
 		"/users/login":  true,
@@ -58,7 +59,7 @@ func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 
 		// 说明没有刷新过，刚登录
 		if updateTime == nil {
-			session.Set("updateTime", now.Unix())
+			session.Set("updateTime", now)
 			err := session.Save()
 			if err != nil {
 				fmt.Printf("保存会话失败: %v\n", err)
@@ -69,18 +70,17 @@ func (l *LoginMiddlewareBuilder) Build() gin.HandlerFunc {
 			return
 		}
 
-		// 类型断言 - 现在是int64的Unix时间戳
-		updateTimeVal, ok := updateTime.(int64)
+		// 类型断言 - 恢复为 time.Time 类型
+		updateTimeVal, ok := updateTime.(time.Time)
 		if !ok {
-			fmt.Printf("会话类型断言失败: updateTime不是int64类型\n")
+			fmt.Printf("会话类型断言失败: updateTime不是time.Time类型\n")
 			ctx.AbortWithStatus(http.StatusInternalServerError)
 			return
 		}
 
 		// 如果超过设定时间没有刷新过，刷新会话
-		lastUpdateTime := time.Unix(updateTimeVal, 0)
-		if now.Sub(lastUpdateTime) > time.Second*10 {
-			session.Set("updateTime", now.Unix())
+		if now.Sub(updateTimeVal) > time.Second*10 {
+			session.Set("updateTime", now)
 			err := session.Save()
 			if err != nil {
 				fmt.Printf("刷新会话失败: %v\n", err)
